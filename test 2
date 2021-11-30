@@ -1,0 +1,72 @@
+Sub DoLangesNow()
+    Dim file
+    Dim path As String
+    Dim StrFolder As String
+    Dim strSubFolder As String
+    Dim strFile As String
+    Dim colSubFolders As New Collection
+    Dim varItem As Variant
+    Dim myStoryRange As Range
+    Dim i As Long
+    Dim TargetList
+    Dim MyRange As Range
+    TargetList = Array("EDIFICIO CAPINURI", "Olga Márquez", "OLGA LEONOR MÁRQUEZ PAVA", "830.005.582-9", "Carrera 53 # 134 A - 71", "2588540", "313 4314549", "24149562", "capinuriph@gmail.com", "Positiva", "ADMINISTRADORA", "POSITIVA") ' put list of terms to find here
+    Dim sStringToAdd
+    sStringToAdd = Array("EDIFICIO TORRE 95", "Claudia Cárdenas", "CLAUDIA CARDENAS PEREZ", "959.011.545-0", "Calle 95 # 21 - 34", "-", "3043982237", "51798184", "aedyco@yahoo.com", "Positiva", "ADMINISTRADORA", "POSITIVA")
+
+
+    ' Parent folder
+    StrFolder = "G:\Prueba\"
+
+    ' Loop through the subfolders
+    strSubFolder = Dir(StrFolder & "*", vbDirectory)
+
+    Do While Not strSubFolder = ""
+        Select Case strSubFolder
+            Case ".", ".."
+                ' Current folder or parent folder - ignore
+            Case Else
+                ' Add to collection
+                colSubFolders.Add Item:=strSubFolder, Key:=strSubFolder
+        End Select
+        ' On to the next one
+        strSubFolder = Dir
+    Loop
+    ' Loop through the collection
+    For Each varItem In colSubFolders
+        Debug.Print varItem
+        ' Loop through files in subfolder
+        strFile = Dir(StrFolder & varItem & "\" & "*.doc")
+        Do While strFile <> ""
+            Debug.Print strFile
+            Set file = Documents.Open(FileName:=StrFolder & varItem & "\" & strFile)
+            ' Start of macro replace text x  with y
+
+            For i = 0 To UBound(TargetList)
+
+                Set MyRange = ActiveDocument.Content
+
+                MyRange.Find.Execute FindText:=TargetList(i), ReplaceWith:=sStringToAdd(i), _
+                                     Replace:=wdReplaceAll
+
+                Set MyRange = ActiveDocument.Sections(1).Headers(wdHeaderFooterPrimary).Range
+
+                MyRange.Find.Execute FindText:=TargetList(i), ReplaceWith:=sStringToAdd(i), _
+                                     Replace:=wdReplaceAll
+
+                Set MyRange = ActiveDocument.Sections(1).Footers(wdHeaderFooterPrimary).Range
+
+                MyRange.Find.Execute FindText:=TargetList(i), ReplaceWith:=sStringToAdd(i), _
+                                    Replace:=wdReplaceAll
+            Next i
+
+
+            '   ' End of macro 1
+            '   ' Saves the file
+            ActiveDocument.Save
+            ActiveDocument.Close
+            ' set file to next in Dir
+            strFile = Dir
+        Loop
+    Next varItem
+End Sub
