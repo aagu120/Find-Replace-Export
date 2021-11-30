@@ -1,0 +1,40 @@
+ublic Sub MassReplace()
+    With Application.FileSearch
+        .LookIn = "C:\"             ' where to search
+        .SearchSubFolders = True    ' search the subfolders
+        .FileName = "*.doc"         ' file pattern to match
+
+        ' if more than one match, execute the following code
+        If .Execute() > 0 Then
+            ' for each file you find, run this loop
+            For i = 1 To .FoundFiles.Count
+                ' open the file based on its index position
+                Documents.Open FileName:=.FoundFiles(i)
+
+                ' search and replace the address
+                selection.Find.ClearFormatting
+                selection.Find.Replacement.ClearFormatting
+                With selection.Find
+                    .Text = "OldAddress"
+                    .MatchCase = True
+                    .Replacement.Text = "NewAddress"
+                End With
+                selection.Find.Execute Replace:=wdReplaceAll
+
+                ' replace e-mail address
+                With selection.Find
+                    .Text = "Oldemail"
+                    .Replacement.Text = "Newemail"
+                End With
+                selection.Find.Execute Replace:=wdReplaceAll
+
+                ' save and close the current document
+                ActiveDocument.Close wdSaveChanges
+            Next i
+        Else
+            ' if the system cannot find any files
+            ' with the .doc extension
+            MsgBox "No files found."
+        End If
+    End With
+End Sub
