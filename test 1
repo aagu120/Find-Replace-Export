@@ -1,0 +1,94 @@
+Sub DoLangesNow()
+   Dim file
+   Dim path As String
+   Dim StrFolder As String
+   Dim strSubFolder As String
+   Dim strFile As String
+   Dim colSubFolders As New Collection
+   Dim varItem As Variant
+   Dim myStoryRange As Range
+
+     ' Parent folder
+        StrFolder = "G:\Caminos de San Lorenzo II\"
+
+     ' Loop through the subfolders 
+        strSubFolder = Dir(StrFolder & "*", vbDirectory)
+
+       Do While Not strSubFolder = ""
+         Select Case strSubFolder
+             Case ".", ".."
+             ' Current folder or parent folder - ignore
+             Case Else
+             ' Add to collection
+             colSubFolders.Add Item:=strSubFolder, Key:=strSubFolder
+         End Select
+     ' On to the next one
+     strSubFolder = Dir
+ Loop
+ ' Loop through the collection
+ For Each varItem In colSubFolders
+     ' Loop through files in subfolder
+     strFile = Dir(StrFolder & varItem & "\" & "*.doc")
+     Do While strFile <> ""
+     Set file = Documents.Open(FileName:=StrFolder & _varItem & "\" & strFile)
+ ' Start of macro replace text x  with y
+  For Each myStoryRange In ActiveDocument.StoryRanges
+    With myStoryRange.Find
+        .Text = "EDIFICIO CAPINURI"
+        .Replacement.Text = "CONJUNTO RESIDENCIAL LOS CAMINOS DE SAN LORENZO II"
+        .Wrap = wdFindContinue
+        .Execute Replace:=wdReplaceAll
+        .Text = "Olga Márquez"
+        .Replacement.Text = "Glady Rubiano"
+        .Wrap = wdFindContinue
+        .Execute Replace:=wdReplaceAll
+        .Text = "OLGA LEONOR MÁRQUEZ PAVA"
+        .Replacement.Text = "GLADY MOLINA RUBIANO"
+        .Wrap = wdFindContinue
+        .Execute Replace:=wdReplaceAll
+        .Text = "830.005.582-9"
+        .Replacement.Text = "830.065.826-7"
+        .Wrap = wdFindContinue
+        .Execute Replace:=wdReplaceAll
+        .Text = "Carrera 53 # 134 A - 71"
+        .Replacement.Text = "Calle 146 A # 58 B - 85"
+        .Wrap = wdFindContinue
+        .Execute Replace:=wdReplaceAll
+        .Text = "2588540"
+        .Replacement.Text = "6241551"
+        .Wrap = wdFindContinue
+        .Execute Replace:=wdReplaceAll
+        .Text = "313 4314549"
+        .Replacement.Text = "312 4680338"
+        .Wrap = wdFindContinue
+        .Execute Replace:=wdReplaceAll
+        .Text = " 24149562"
+        .Replacement.Text = "0"
+        .Wrap = wdFindContinue
+        .Execute Replace:=wdReplaceAll
+        .Text = "capinuriph@gmail.com"
+        .Replacement.Text = "caminosdesanlorenzodos@gmail.com"
+        .Wrap = wdFindContinue
+        .Execute Replace:=wdReplaceAll
+        .Text = "Positiva"
+        .Replacement.Text = "Positiva"
+        .Wrap = wdFindContinue
+        .Execute Replace:=wdReplaceAll
+        .Text = " ADMINISTRADORA"
+        .Replacement.Text = "ADMINISTRADORA"
+        .Wrap = wdFindContinue
+        .Execute Replace:=wdReplaceAll
+    End With
+         Next myStoryRange
+   ' End of macro 1
+   ' Saves the file
+         ActiveDocument.Save
+         ActiveDocument.Close , (SaveChanges)
+        ' set file to next in Dir
+         strFile = Dir
+       Loop
+   Next varItem
+
+End Sub
+
+
