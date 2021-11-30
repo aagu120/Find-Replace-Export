@@ -1,0 +1,13 @@
+def replace_string1(filename='test.docx'):
+doc = Document(filename)
+list= ['ABC','XYZ']
+list2 = ['PQR','DEF']
+for p in doc.paragraphs:
+    inline = p.runs
+    for j in range(0,len(inline)):
+        for i in range(0, len(list)):
+            inline[j].text = inline[j].text.replace(list[i], list2[i])
+            print(p.text)
+            print(inline[j].text)
+doc.save('dest1.docx')
+return 1
