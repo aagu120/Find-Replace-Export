@@ -1,0 +1,91 @@
+(*
+ Intended to be used in an Automator application's Run AppleScript action
+ It accepts two input folders:1) source folder, and 2) output folder (in that order)
+ It converts Pages documents found in the source folder to Word documents
+ in the output folder.
+ Reference: https://discussions.apple.com/thread/253072302
+ Tested: macOS 11.5.2 (20G95), Pages 11.1, macOS 10.14.6 (18G9323, Pages 10.1
+ VikingOSX, 2021-08-23, Apple Support Communities, No warranties/support expressed or implied.
+*)
+
+use scripting additions
+
+property valid_kind : {"Pages document", "Pages Publication"}
+property DOCX : ".docx"
+property DELIM : {":", ".pages"}
+property file_count : (0 as integer)
+property app_icon : "/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/MultipleItemsIcon.icns"
+
+on run {input, parameters}
+	
+	set Pages_Dir to (item 1 of input)
+	set Word_Dir to (item 2 of input)
+	
+	try
+		tell application "Finder"
+			set pages_list to (every item in folder Pages_Dir whose kind is in valid_kind) as alias list
+			if pages_list = {} then return
+			
+			repeat with anItem in pages_list
+				tell application "System Events" to set package_status to {package folder} of anItem
+				my export_file(anItem, Word_Dir, package_status)
+			end repeat
+		end tell
+	on error errmsg number errnbr
+		my error_handler(errnbr, errmsg)
+		quit
+	end try
+	
+	if file_count > 0 then
+		display dialog "Export Complete." & return & tab & " Files exported to Word " & " :  " & (file_count as text) ¬
+			buttons {"Done"} default button "Done" with title "Pages Export Facility" with icon POSIX file app_icon as alias
+	end if
+	quit
+end run
+
+on export_file(theFile, outdir, is_package_folder)
+	
+	set {TID, AppleScript's text item delimiters} to {AppleScript's text item delimiters, DELIM}
+	if not is_package_folder then
+		set exportDocument to ((outdir as text) & (item -2 of text items of (theFile as text)) & DOCX) as text
+	else
+		# because package folder files end in a colon adding an extra empty cell in the list
+		set exportDocument to ((outdir as text) & (item -3 of text items of (theFile as text)) & DOCX) as text
+	end if
+	set AppleScript's text item delimiters to TID
+	
+	close access (open for access exportDocument)
+	tell application "Pages"
+		try
+			set myDoc to open theFile as alias
+			with timeout of 1800 seconds
+				export myDoc to file exportDocument as Microsoft Word
+			end timeout
+			set file_count to (file_count + 1) as integer
+			close myDoc saving no
+		on error errmsg number errnbr
+			my error_handler(errnbr, errmsg)
+			quit
+		end try
+	end tell
+	-- force extension visibility on exported Word document
+	tell application "Finder"
+		if exists (item exportDocument as alias) then
+			set extension hidden of (item exportDocument as alias) to false
+		end if
+	end tell
+	return
+	
+end export_file
+
+on error_handler(nbr, msg)
+	return display alert "[ " & nbr & " ] " & msg as critical giving up after 20
+end error_handler
+
+on quit {}
+	-- perform these cleanup items, and then really quit
+	tell application "Pages" to if it is running then quit
+	set file_count to (0 as integer)
+	set exportDocument to ""
+	continue quit
+end quit
